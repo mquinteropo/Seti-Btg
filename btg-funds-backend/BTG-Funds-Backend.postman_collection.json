@@ -1,0 +1,283 @@
+{
+  "info": {
+    "_postman_id": "btg-funds-backend-collection",
+    "name": "BTG Funds Backend",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Login",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"test@mail.com\",\n  \"password\": \"123456\"\n}"
+        },
+        "url": {
+          "raw": "https://kikkuzrtyg.execute-api.us-east-1.amazonaws.com/dev/auth/login",
+          "protocol": "https",
+          "host": ["kikkuzrtyg", "execute-api", "us-east-1", "amazonaws", "com"],
+          "path": ["dev", "auth", "login"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Login exitoso\", function () {",
+              "    pm.response.to.have.status(200);",
+              "    pm.expect(pm.response.json()).to.have.property('token');",
+              "});",
+              "pm.environment.set('token', pm.response.json().token);"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Suscripción exitosa",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{token}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"userId\": \"u1\",\n  \"fundId\": \"f1\",\n  \"amount\": 200,\n  \"notifyBy\": \"email\"\n}"
+        },
+        "url": {
+          "raw": "https://kikkuzrtyg.execute-api.us-east-1.amazonaws.com/dev/funds/subscribe",
+          "protocol": "https",
+          "host": ["kikkuzrtyg", "execute-api", "us-east-1", "amazonaws", "com"],
+          "path": ["dev", "funds", "subscribe"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Suscripción exitosa\", function () {",
+              "    pm.response.to.have.status(200);",
+              "    pm.expect(pm.response.json().message).to.include('Suscripción exitosa');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Suscripción monto menor al mínimo",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{token}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"userId\": \"u1\",\n  \"fundId\": \"f1\",\n  \"amount\": 10,\n  \"notifyBy\": \"email\"\n}"
+        },
+        "url": {
+          "raw": "https://kikkuzrtyg.execute-api.us-east-1.amazonaws.com/dev/funds/subscribe",
+          "protocol": "https",
+          "host": ["kikkuzrtyg", "execute-api", "us-east-1", "amazonaws", "com"],
+          "path": ["dev", "funds", "subscribe"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Monto menor al mínimo\", function () {",
+              "    pm.response.to.have.status(400);",
+              "    pm.expect(pm.response.json().message).to.include('monto mínimo');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Suscripción saldo insuficiente",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{token}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"userId\": \"u1\",\n  \"fundId\": \"f1\",\n  \"amount\": 999999,\n  \"notifyBy\": \"email\"\n}"
+        },
+        "url": {
+          "raw": "https://kikkuzrtyg.execute-api.us-east-1.amazonaws.com/dev/funds/subscribe",
+          "protocol": "https",
+          "host": ["kikkuzrtyg", "execute-api", "us-east-1", "amazonaws", "com"],
+          "path": ["dev", "funds", "subscribe"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Saldo insuficiente\", function () {",
+              "    pm.response.to.have.status(400);",
+              "    pm.expect(pm.response.json().message).to.include('saldo disponible');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Suscripción duplicada",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{token}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"userId\": \"u1\",\n  \"fundId\": \"f1\",\n  \"amount\": 200,\n  \"notifyBy\": \"email\"\n}"
+        },
+        "url": {
+          "raw": "https://kikkuzrtyg.execute-api.us-east-1.amazonaws.com/dev/funds/subscribe",
+          "protocol": "https",
+          "host": ["kikkuzrtyg", "execute-api", "us-east-1", "amazonaws", "com"],
+          "path": ["dev", "funds", "subscribe"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Suscripción duplicada\", function () {",
+              "    pm.response.to.have.status(400);",
+              "    pm.expect(pm.response.json().message).to.include('suscripción activa');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Cancelación exitosa",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{token}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"userId\": \"u1\",\n  \"fundId\": \"f1\",\n  \"notifyBy\": \"email\"\n}"
+        },
+        "url": {
+          "raw": "https://kikkuzrtyg.execute-api.us-east-1.amazonaws.com/dev/funds/cancel",
+          "protocol": "https",
+          "host": ["kikkuzrtyg", "execute-api", "us-east-1", "amazonaws", "com"],
+          "path": ["dev", "funds", "cancel"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Cancelación exitosa\", function () {",
+              "    pm.response.to.have.status(200);",
+              "    pm.expect(pm.response.json().message).to.include('Cancelación exitosa');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Cancelación sin suscripción activa",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{token}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"userId\": \"u1\",\n  \"fundId\": \"f1\",\n  \"notifyBy\": \"email\"\n}"
+        },
+        "url": {
+          "raw": "https://kikkuzrtyg.execute-api.us-east-1.amazonaws.com/dev/funds/cancel",
+          "protocol": "https",
+          "host": ["kikkuzrtyg", "execute-api", "us-east-1", "amazonaws", "com"],
+          "path": ["dev", "funds", "cancel"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Cancelación sin suscripción activa\", function () {",
+              "    pm.response.to.have.status(400);",
+              "    pm.expect(pm.response.json().message).to.include('No hay suscripción activa');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Historial de transacciones",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}" }
+        ],
+        "url": {
+          "raw": "https://kikkuzrtyg.execute-api.us-east-1.amazonaws.com/dev/funds/history?userId=u1",
+          "protocol": "https",
+          "host": ["kikkuzrtyg", "execute-api", "us-east-1", "amazonaws", "com"],
+          "path": ["dev", "funds", "history"],
+          "query": [
+            { "key": "userId", "value": "u1" }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Historial de transacciones\", function () {",
+              "    pm.response.to.have.status(200);",
+              "    pm.expect(pm.response.json()).to.be.an('array');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    }
+  ],
+  "event": [],
+  "variable": [
+    { "key": "token", "value": "" }
+  ]
+}

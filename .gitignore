@@ -1,0 +1,30 @@
+# Archivos de documentación temporal
+*.md
+!README.md
+
+# PDFs y archivos de descarga
+*.pdf
+
+# Archivos de configuración AWS temporal
+AWS_PERMISSIONS_NEEDED.md
+DEPLOYMENT_INFO.md
+NOTIFICATION_STRATEGY_PATTERN.md
+
+# Scripts SQL (ya están en el backend)
+script_btgpactual.sql
+
+# Archivos del sistema
+.DS_Store
+Thumbs.db
+*.log
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Archivos temporales
+*.tmp
+*.temp

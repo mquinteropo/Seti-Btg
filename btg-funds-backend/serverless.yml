@@ -1,0 +1,59 @@
+service: btg-funds-backend
+
+useDotenv: true
+
+custom:
+  dotenv:
+    include:
+      - PG_HOST
+      - PG_DATABASE
+      - PG_USER
+      - PG_PASSWORD
+      - PG_PORT
+      - FUNDS_TABLE
+      - SES_FROM_EMAIL
+      - JWT_SECRET
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: us-east-1
+  environment:
+    PG_HOST: ${env:PG_HOST}
+    PG_DATABASE: ${env:PG_DATABASE}
+    PG_USER: ${env:PG_USER}
+    PG_PASSWORD: ${env:PG_PASSWORD}
+    PG_PORT: ${env:PG_PORT}
+    FUNDS_TABLE: ${env:FUNDS_TABLE}
+    SES_FROM_EMAIL: ${env:SES_FROM_EMAIL}
+    JWT_SECRET: ${env:JWT_SECRET}
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:BatchWriteItem
+      Resource: arn:aws:dynamodb:us-east-1:296171618462:table/BtgPactualFundsDB
+    - Effect: Allow
+      Action:
+        - ses:SendEmail
+        - ses:SendRawEmail
+      Resource:
+        - arn:aws:ses:us-east-1:296171618462:identity/mquinteropo@gmail.com
+        - arn:aws:ses:us-east-1:296171618462:identity/miguebajoelagua@gmail.com
+    - Effect: Allow
+      Action:
+        - sns:Publish
+      Resource: "*"
+functions:
+  app:
+    handler: index.handler
+    events:
+      - httpApi: '*'
+plugins:
+  - serverless-dotenv-plugin
+  - serverless-offline

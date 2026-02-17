@@ -1,0 +1,99 @@
+
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Backend Node.js con API Gateway y AWS Lambda para BTG Funds
+
+Parameters:
+  NodeEnv:
+    Type: String
+    Default: production
+  JWTSecret:
+    Type: String
+    NoEcho: true
+  SESFromEmail:
+    Type: String
+  PgHost:
+    Type: String
+  PgDatabase:
+    Type: String
+  PgUser:
+    Type: String
+  PgPassword:
+    Type: String
+  PgPort:
+    Type: String
+  AwsRegion:
+    Type: String
+
+Resources:
+  ApiGateway:
+    Type: AWS::ApiGateway::RestApi
+    Properties:
+      Name: BTGFundsApi
+
+  LambdaFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: BTGFundsBackend
+      Handler: index.handler
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Runtime: nodejs18.x
+      Timeout: 30
+      Environment:
+        Variables:
+          NODE_ENV: !Ref NodeEnv
+          JWT_SECRET: !Ref JWTSecret
+          SES_FROM_EMAIL: !Ref SESFromEmail
+          PG_HOST: !Ref PgHost
+          PG_DATABASE: !Ref PgDatabase
+          PG_USER: !Ref PgUser
+          PG_PASSWORD: !Ref PgPassword
+          PG_PORT: !Ref PgPort
+      Code:
+        S3Bucket: bucket-for-btgpactual 
+        S3Key: backend.zip
+
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: LambdaBasicExecution
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: arn:aws:logs:*:*:*
+              - Effect: Allow
+                Action:
+                  - ses:SendEmail
+                  - ses:SendRawEmail
+                Resource: '*'
+              - Effect: Allow
+                Action:
+                  - rds-db:connect
+                Resource: '*'
+
+  LambdaApiPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !GetAtt LambdaFunction.Arn
+      Principal: apigateway.amazonaws.com
+
+Outputs:
+  ApiGatewayId:
+    Description: ID del API Gateway
+    Value: !Ref ApiGateway
+  LambdaFunctionArn:
+    Description: ARN de la función Lambda
+    Value: !GetAtt LambdaFunction.Arn
