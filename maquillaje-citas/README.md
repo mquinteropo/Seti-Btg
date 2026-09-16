@@ -21,7 +21,8 @@ Persistencia por capacidades del artifact (no localStorage):
 
 Clienta, WhatsApp, número de personas a maquillar, fecha, hora de inicio, duración
 (la hora de fin se calcula), servicio, ocasión, estado (agendada / confirmada /
-completada / cancelada), modalidad y dirección, costo de transporte, valor del
-servicio, abono, medio y fecha del abono, notas y hasta 8 fotos de referencia.
+completada / cancelada), modalidad y dirección, valor del servicio, abono, medio y
+fecha del abono, notas y hasta 8 fotos de referencia.
 
-El saldo es siempre `valor + transporte - abono`: no se guarda, se calcula.
+El saldo es siempre `valor - abono`: no se guarda, se calcula, y es el número más
+grande de la tarjeta porque es lo que hay que cobrar el día de la cita.

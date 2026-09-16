@@ -13,8 +13,6 @@
     --accent:#B21E5F;
     --accent-soft:#F7E4EC;
     --accent-ink:#FFFFFF;
-    --gold:#9A6B22;
-    --gold-soft:#F7EDDC;
     --ok:#1F7A55;
     --ok-soft:#E1F1E9;
     --warn:#A3651A;
@@ -37,8 +35,6 @@
       --accent:#F16FA3;
       --accent-soft:#3A1F2D;
       --accent-ink:#1A1017;
-      --gold:#E0B463;
-      --gold-soft:#372B18;
       --ok:#6FD0A5;
       --ok-soft:#18301F;
       --warn:#E5B06A;
@@ -60,8 +56,6 @@
     --accent:#F16FA3;
     --accent-soft:#3A1F2D;
     --accent-ink:#1A1017;
-    --gold:#E0B463;
-    --gold-soft:#372B18;
     --ok:#6FD0A5;
     --ok-soft:#18301F;
     --warn:#E5B06A;
@@ -155,12 +149,13 @@
   .chip.ok{background:var(--ok-soft);color:var(--ok);font-weight:700}
   .chip.warn{background:var(--warn-soft);color:var(--warn);font-weight:700}
   .chip.danger{background:var(--danger-soft);color:var(--danger);font-weight:700}
-  .chip.gold{background:var(--gold-soft);color:var(--gold);font-weight:700}
 
   .money{display:flex;gap:14px;flex-wrap:wrap;margin-top:11px;padding-top:10px;border-top:1px solid var(--line)}
   .money div{min-width:82px}
   .money .k{display:block;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-faint)}
   .money .v{font-weight:700;font-variant-numeric:tabular-nums;font-size:14.5px}
+  .money .v.big{font-family:"Bricolage Grotesque","Karla",serif;font-weight:800;font-size:21px;line-height:1.15}
+  .money .owe{flex:1;text-align:right}
   .money .v.due{color:var(--warn)}
   .money .v.clear{color:var(--ok)}
 
@@ -231,6 +226,7 @@
   }
   .balancebox .k{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-faint)}
   .balancebox .v{font-family:"Bricolage Grotesque","Karla",serif;font-weight:800;font-size:20px;font-variant-numeric:tabular-nums}
+  .balancebox .v.big{font-size:26px}
 
   .photogrid{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
   .pslot{position:relative;width:78px;height:78px;border-radius:10px;overflow:hidden;border:1px solid var(--line);background:var(--surface-2)}
@@ -387,10 +383,6 @@
           <label class="f full">Dirección exacta
             <input id="f_direccion" placeholder="Calle 10 #43-25, apto 502 · torre norte">
           </label>
-          <label class="f full">Costo de transporte
-            <input id="f_transporte" type="number" min="0" step="1000" placeholder="0">
-            <span class="hint">Se suma al total del servicio.</span>
-          </label>
         </div>
       </fieldset>
 
@@ -417,8 +409,8 @@
           </label>
         </div>
         <div class="balancebox">
-          <div><span class="k">Total con transporte</span><div class="v num" id="b_total">$0</div></div>
-          <div><span class="k">Saldo pendiente</span><div class="v num" id="b_saldo">$0</div></div>
+          <div><span class="k">Valor del servicio</span><div class="v num" id="b_total">$0</div></div>
+          <div><span class="k">Le queda debiendo</span><div class="v num big" id="b_saldo">$0</div></div>
         </div>
       </fieldset>
 
@@ -501,7 +493,7 @@
     if (d.length === 10) d = "57" + d;
     return `https://wa.me/${d}?text=${encodeURIComponent(msg)}`;
   };
-  const total = (c) => num(c.valor) + num(c.transporte);
+  const total = (c) => num(c.valor);
   const saldo = (c) => Math.max(0, total(c) - num(c.abono));
 
   let toastTimer = null;
@@ -529,14 +521,14 @@
     { id:"demo1", demo:true, cliente:"Laura Restrepo", tel:"3001234567", personas:1,
       fecha:todayISO(), hora:"15:00", duracion:60, servicio:"Maquillaje y peinado", ocasion:"Grado",
       modalidad:"A domicilio", zona:"Laureles, Medellín", direccion:"Calle 10 #43-25, apto 502",
-      valor:220000, transporte:20000, abono:100000, medio:"Nequi", estado:"confirmada",
+      valor:240000, abono:100000, medio:"Nequi", estado:"confirmada",
       notas:"Vestido verde esmeralda. Ojo ahumado café, labio nude.", fotos:[] },
     { id:"demo2", demo:true, cliente:"Valeria Gómez", tel:"3119876543", personas:3,
       fecha:(() => { const d = new Date(); d.setDate(d.getDate()+4);
         return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; })(),
       hora:"06:30", duracion:180, servicio:"Maquillaje + peinado novia", ocasion:"Matrimonio",
       modalidad:"Salón / hotel", zona:"El Poblado", direccion:"Hotel Dann Carlton, suite 1204",
-      valor:650000, transporte:35000, abono:0, medio:"Bancolombia", estado:"agendada",
+      valor:685000, abono:0, medio:"Bancolombia", estado:"agendada",
       notas:"Novia + mamá + una dama. Prueba hecha el mes pasado, repetir el mismo labio.", fotos:[] }
   ];
 
@@ -599,8 +591,7 @@
             <div class="chips">
               <span class="chip ${est.cls}">${esc(est.label)}</span>
               ${lugar ? `<span class="chip place">${esc(lugar)}</span>` : ""}
-              ${pagada ? `<span class="chip ok">Pagada</span>` : (nada ? `<span class="chip danger">Sin abono</span>` : `<span class="chip warn">Debe ${esc(money(s))}</span>`)}
-              ${num(c.transporte) ? `<span class="chip gold">Transporte ${esc(money(c.transporte))}</span>` : ""}
+              ${pagada ? `<span class="chip ok">Pagada</span>` : `<span class="chip ${nada ? "danger" : "warn"}">Cobrar ${esc(money(s))}</span>`}
             </div>
           </div>
         </div>
@@ -608,7 +599,7 @@
         <div class="money">
           <div><span class="k">Servicio</span><span class="v num">${esc(money(t))}</span></div>
           <div><span class="k">Abonado</span><span class="v num">${esc(money(c.abono))}${c.medio ? ` <span class="hint">${esc(c.medio)}</span>` : ""}</span></div>
-          <div><span class="k">Saldo</span><span class="v num ${s > 0 ? "due" : "clear"}">${esc(money(s))}</span></div>
+          <div class="owe"><span class="k">${s > 0 ? "Cobrar el día de la cita" : "Saldo"}</span><span class="v num big ${s > 0 ? "due" : "clear"}">${esc(money(s))}</span></div>
         </div>
         ${fotos ? `<div class="thumbs">${fotos}</div>` : ""}
         ${c.notas ? `<div class="note">${esc(c.notas)}</div>` : ""}
@@ -671,15 +662,14 @@
   const F = {
     cliente:"f_cliente", tel:"f_tel", personas:"f_personas", fecha:"f_fecha", hora:"f_hora",
     servicio:"f_servicio", ocasion:"f_ocasion", duracion:"f_duracion", estado:"f_estado",
-    modalidad:"f_modalidad", zona:"f_zona", direccion:"f_direccion", transporte:"f_transporte",
-    valor:"f_valor", abono:"f_abono", medio:"f_medio", fechaAbono:"f_fechaAbono", notas:"f_notas"
+    modalidad:"f_modalidad", zona:"f_zona", direccion:"f_direccion", valor:"f_valor", abono:"f_abono", medio:"f_medio", fechaAbono:"f_fechaAbono", notas:"f_notas"
   };
 
   function openForm(c) {
     draft = c ? { ...c } : {
       id: null, cliente:"", tel:"", personas:1, fecha:todayISO(), hora:"", servicio:"Solo maquillaje",
       ocasion:"Social", duracion:60, estado:"agendada", modalidad:"A domicilio", zona:"", direccion:"",
-      transporte:"", valor:"", abono:"", medio:"Nequi", fechaAbono:"", notas:"", fotos:[]
+      valor:"", abono:"", medio:"Nequi", fechaAbono:"", notas:"", fotos:[]
     };
     draftPhotos = [...(draft.fotos || [])];
     uploadedThisSession = new Set();
@@ -699,20 +689,19 @@
     out.duracion = parseInt(out.duracion, 10) || 60;
     out.valor = num(out.valor);
     out.abono = num(out.abono);
-    out.transporte = num(out.transporte);
     out.fotos = [...draftPhotos];
     return out;
   }
 
   function updateBalance() {
-    const c = { valor: $("f_valor").value, transporte: $("f_transporte").value, abono: $("f_abono").value };
+    const c = { valor: $("f_valor").value, abono: $("f_abono").value };
     $("b_total").textContent = money(total(c));
     const s = total(c) - num(c.abono);
     $("b_saldo").textContent = money(Math.max(0, s));
     $("b_saldo").style.color = s > 0 ? "var(--warn)" : "var(--ok)";
     $("b_total").style.color = (num(c.abono) > total(c)) ? "var(--danger)" : "var(--ink)";
   }
-  ["f_valor", "f_abono", "f_transporte"].forEach((id) => $(id).addEventListener("input", updateBalance));
+  ["f_valor", "f_abono"].forEach((id) => $(id).addEventListener("input", updateBalance));
 
   function renderPhotos() {
     const html = draftPhotos.map((id) => `
@@ -808,7 +797,7 @@
         cliente:data.cliente.trim(), tel:data.tel.trim(), personas:data.personas,
         fecha:data.fecha, hora:data.hora, duracion:data.duracion, servicio:data.servicio,
         ocasion:data.ocasion, estado:data.estado, modalidad:data.modalidad, zona:data.zona.trim(),
-        direccion:data.direccion.trim(), valor:data.valor, transporte:data.transporte,
+        direccion:data.direccion.trim(), valor:data.valor,
         abono:data.abono, medio:data.medio, fechaAbono:data.fechaAbono, notas:data.notas.trim(),
         fotos:data.fotos, actualizado:new Date().toISOString()
       };
