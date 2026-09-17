@@ -1,0 +1,18 @@
+# Unidad de USUARIO: ~/.config/systemd/user/agenda-glam.service
+# Corre como miguel, igual que el resto de los sitios del servidor.
+[Unit]
+Description=Agenda de Glam (citas de maquillaje)
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/apps/agenda-glam
+Environment=NODE_ENV=production
+Environment=PORT=3019
+Environment=AGENDA_DATA=%h/apps/agenda-glam/data
+ExecStart=/usr/bin/node %h/apps/agenda-glam/server.js
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=default.target

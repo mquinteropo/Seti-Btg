@@ -1,0 +1,882 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Agenda de Glam</title>
+<link rel="icon" href="/favicon.png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Karla:wght@400;500;700&display=swap">
+<style>
+  :root{
+    --ink:#2A1C24; --ink-soft:#6B5762; --ink-faint:#9A8791;
+    --ground:#FBF7F8; --surface:#FFFFFF; --surface-2:#F4EDF0;
+    --line:#E7DBE1; --line-strong:#D5C3CC;
+    --accent:#B21E5F; --accent-soft:#F7E4EC; --accent-ink:#FFFFFF;
+    --ok:#1F7A55; --ok-soft:#E1F1E9;
+    --warn:#A3651A; --warn-soft:#FBEBD6;
+    --danger:#B3322C; --danger-soft:#FAE3E1;
+    --shadow:0 1px 2px rgba(42,28,36,.06), 0 8px 24px -12px rgba(42,28,36,.18);
+    --radius:14px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{
+    background:var(--ground);color:var(--ink);
+    font-family:"Karla","Helvetica Neue",Arial,sans-serif;font-size:15px;line-height:1.45;
+    -webkit-font-smoothing:antialiased;
+    padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+  }
+  h1,h2,h3{font-family:"Bricolage Grotesque","Karla",Georgia,serif;font-weight:800;margin:0;
+    text-wrap:balance;letter-spacing:-.015em}
+  img{max-width:100%}
+  .num{font-variant-numeric:tabular-nums}
+  .wrap{max-width:900px;margin:0 auto;padding-inline:16px;padding-block:0 96px}
+
+  header.top{position:sticky;top:0;z-index:30;background:rgba(251,247,248,.94);
+    backdrop-filter:blur(10px);border-bottom:1px solid var(--line);
+    margin-inline:-16px;padding-inline:16px;padding-block:14px 12px}
+  .brandrow{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap}
+  .brand{font-size:21px}
+  .brand span{color:var(--accent)}
+  .who{font-size:12.5px;color:var(--ink-soft);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+
+  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+  .stat{background:var(--surface);border:1px solid var(--line);border-radius:11px;padding:9px 11px}
+  .stat b{font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-faint);
+    display:block;font-weight:700}
+  .stat i{font-family:"Bricolage Grotesque","Karla",serif;font-weight:800;font-size:17px;
+    font-style:normal;display:block;margin-top:2px;font-variant-numeric:tabular-nums}
+  .stat.due i{color:var(--warn)}
+  .stat.paid i{color:var(--ok)}
+
+  .toolbar{display:flex;gap:8px;align-items:center;margin-top:12px;flex-wrap:wrap}
+  .tabs{display:flex;gap:6px;overflow-x:auto;flex:1 1 240px;scrollbar-width:none}
+  .tabs::-webkit-scrollbar{display:none}
+  .tab{border:1px solid var(--line-strong);background:transparent;color:var(--ink-soft);
+    border-radius:999px;padding:6px 12px;font:inherit;font-size:13px;white-space:nowrap;cursor:pointer}
+  .tab[aria-selected="true"]{background:var(--accent);border-color:var(--accent);
+    color:var(--accent-ink);font-weight:700}
+  .search{flex:1 1 150px;min-width:120px;border:1px solid var(--line-strong);background:var(--surface);
+    color:var(--ink);border-radius:999px;padding:7px 12px;font:inherit;font-size:13.5px}
+  :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+  .banner{margin-top:14px;border:1px dashed var(--line-strong);border-radius:var(--radius);
+    padding:10px 13px;font-size:13px;color:var(--ink-soft);background:var(--surface-2)}
+  .banner.bad{border-style:solid;border-color:var(--danger);color:var(--danger);background:var(--danger-soft)}
+
+  .daygroup{margin-top:22px}
+  .dayhead{display:flex;align-items:baseline;gap:9px;margin-bottom:9px;padding-bottom:6px;
+    border-bottom:1px solid var(--line)}
+  .dayhead .d{font-family:"Bricolage Grotesque","Karla",serif;font-weight:800;font-size:15px}
+  .dayhead .rel{font-size:11.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--accent);font-weight:700}
+  .dayhead .cnt{margin-left:auto;font-size:12px;color:var(--ink-faint);font-variant-numeric:tabular-nums}
+
+  .cards{display:flex;flex-direction:column;gap:10px}
+  .card{position:relative;background:var(--surface);border:1px solid var(--line);
+    border-radius:var(--radius);box-shadow:var(--shadow);padding:13px 14px 13px 17px;overflow:hidden}
+  .card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--ok)}
+  .card.owes::before{background:var(--warn)}
+  .card.unpaid::before{background:var(--danger)}
+  .card.off{opacity:.55}
+  .card.off::before{background:var(--ink-faint)}
+
+  .cardtop{display:flex;gap:10px;align-items:flex-start}
+  .hour{font-family:"Bricolage Grotesque","Karla",serif;font-weight:800;font-size:17px;
+    font-variant-numeric:tabular-nums;line-height:1.15;min-width:64px}
+  .hour small{display:block;font-family:"Karla",sans-serif;font-weight:500;font-size:10.5px;
+    color:var(--ink-faint);letter-spacing:.04em;text-transform:uppercase}
+  .whoblock{flex:1;min-width:0}
+  .name{font-family:"Bricolage Grotesque","Karla",serif;font-weight:600;font-size:16px;word-break:break-word}
+  .svc{font-size:13px;color:var(--ink-soft)}
+  .chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}
+  .chip{font-size:11px;padding:2.5px 8px;border-radius:999px;white-space:nowrap;border:1px solid transparent}
+  .chip.place{background:var(--surface-2);color:var(--ink-soft);border-color:var(--line)}
+  .chip.state{background:var(--accent-soft);color:var(--accent);font-weight:700}
+  .chip.ok{background:var(--ok-soft);color:var(--ok);font-weight:700}
+  .chip.warn{background:var(--warn-soft);color:var(--warn);font-weight:700}
+  .chip.danger{background:var(--danger-soft);color:var(--danger);font-weight:700}
+
+  .money{display:flex;gap:14px;flex-wrap:wrap;margin-top:11px;padding-top:10px;border-top:1px solid var(--line)}
+  .money>div{min-width:84px}
+  .money b{display:block;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;
+    color:var(--ink-faint);font-weight:700}
+  .money i{font-style:normal;font-weight:700;font-variant-numeric:tabular-nums;font-size:14.5px}
+  .money .owe{flex:1;text-align:right}
+  .money i.big{font-family:"Bricolage Grotesque","Karla",serif;font-weight:800;font-size:21px;line-height:1.15}
+  .money i.due{color:var(--warn)}
+  .money i.clear{color:var(--ok)}
+  .money small{color:var(--ink-faint);font-weight:400;font-size:11.5px}
+
+  .thumbs{display:flex;gap:6px;margin-top:11px;flex-wrap:wrap}
+  .thumb{width:56px;height:56px;border-radius:9px;object-fit:cover;border:1px solid var(--line);
+    cursor:zoom-in;background:var(--surface-2)}
+  .note{margin-top:10px;font-size:13px;color:var(--ink-soft);background:var(--surface-2);
+    border-radius:9px;padding:8px 10px;white-space:pre-wrap;word-break:break-word}
+
+  .actions{display:flex;gap:7px;margin-top:11px;flex-wrap:wrap}
+  .btn{font:inherit;font-size:13px;border-radius:9px;padding:6.5px 12px;cursor:pointer;
+    border:1px solid var(--line-strong);background:var(--surface);color:var(--ink)}
+  .btn:hover{border-color:var(--accent);color:var(--accent)}
+  .btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:700}
+  .btn.primary:hover{opacity:.9;color:var(--accent-ink)}
+  .btn.ghost{border-color:transparent;color:var(--ink-faint)}
+  .btn.ghost:hover{color:var(--danger);border-color:var(--danger)}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+
+  .empty{text-align:center;padding:48px 16px;color:var(--ink-faint)}
+  .empty h3{font-size:17px;color:var(--ink);margin-bottom:6px}
+
+  .fab{position:fixed;right:16px;bottom:0;margin-bottom:calc(16px + env(safe-area-inset-bottom,0px));
+    z-index:40;background:var(--accent);color:var(--accent-ink);border:none;border-radius:999px;
+    padding:13px 20px;font:inherit;font-weight:700;font-size:15px;cursor:pointer;
+    box-shadow:0 10px 26px -10px rgba(178,30,95,.75)}
+
+  dialog{border:none;padding:0;background:transparent;max-width:600px;width:calc(100% - 24px);color:var(--ink)}
+  dialog::backdrop{background:rgba(30,16,24,.55);backdrop-filter:blur(3px)}
+  .sheet{background:var(--surface);border:1px solid var(--line);border-radius:18px;
+    box-shadow:var(--shadow);max-height:86vh;overflow:auto}
+  .sheet header{position:sticky;top:0;background:var(--surface);border-bottom:1px solid var(--line);
+    padding:15px 18px;display:flex;align-items:center;justify-content:space-between;gap:12px;z-index:2}
+  .sheet header h2{font-size:18px}
+  .sheet .body{padding:16px 18px 20px}
+  .sheet footer{position:sticky;bottom:0;background:var(--surface);border-top:1px solid var(--line);
+    padding:12px 18px;display:flex;gap:8px;justify-content:flex-end}
+
+  fieldset{border:none;margin:0 0 16px;padding:0}
+  legend{font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-faint);
+    font-weight:700;padding:0 0 8px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .grid .full{grid-column:1/-1}
+  label.f{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--ink-soft);font-weight:700}
+  label.f input,label.f select,label.f textarea{font:inherit;font-size:14.5px;color:var(--ink);
+    background:var(--surface);border:1px solid var(--line-strong);border-radius:9px;padding:8px 10px;width:100%}
+  label.f textarea{min-height:76px;resize:vertical}
+  .hint{font-size:11.5px;color:var(--ink-faint);font-weight:400}
+
+  .balance{background:var(--surface-2);border:1px solid var(--line);border-radius:11px;padding:11px 13px;
+    display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-top:10px}
+  .balance b{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-faint);font-weight:700}
+  .balance i{font-family:"Bricolage Grotesque","Karla",serif;font-weight:800;font-size:20px;
+    font-style:normal;font-variant-numeric:tabular-nums;display:block}
+  .balance i.big{font-size:26px}
+
+  .photos{display:flex;flex-wrap:wrap;gap:8px}
+  .slot{position:relative;width:78px;height:78px;border-radius:10px;overflow:hidden;
+    border:1px solid var(--line);background:var(--surface-2);display:flex;align-items:center;
+    justify-content:center;font-size:11px;color:var(--ink-faint)}
+  .slot img{width:100%;height:100%;object-fit:cover;display:block}
+  .slot button{position:absolute;top:3px;right:3px;width:21px;height:21px;border-radius:50%;
+    border:none;background:rgba(20,10,16,.72);color:#fff;font-size:13px;line-height:1;cursor:pointer;padding:0}
+  .addphoto{width:78px;height:78px;border-radius:10px;border:1px dashed var(--line-strong);
+    background:transparent;color:var(--ink-faint);font:inherit;font-size:11.5px;cursor:pointer;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px}
+  .addphoto:hover{border-color:var(--accent);color:var(--accent)}
+  .addphoto span{font-size:19px;line-height:1}
+
+  .lightbox{position:fixed;inset:0;background:rgba(18,9,14,.92);z-index:60;display:flex;
+    align-items:center;justify-content:center;padding:20px;cursor:zoom-out}
+  .lightbox img{max-width:100%;max-height:100%;border-radius:10px}
+
+  .toast{position:fixed;left:50%;transform:translateX(-50%);
+    bottom:calc(84px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--ground);
+    padding:9px 16px;border-radius:999px;font-size:13.5px;z-index:70;box-shadow:var(--shadow);
+    max-width:90%;text-align:center}
+
+  .gate{min-height:100dvh;display:flex;align-items:center;justify-content:center;padding:24px 16px}
+  .gatebox{width:100%;max-width:380px;background:var(--surface);border:1px solid var(--line);
+    border-radius:18px;box-shadow:var(--shadow);padding:24px}
+  .gatebox h1{font-size:24px;margin-bottom:4px}
+  .gatebox p{color:var(--ink-soft);font-size:13.5px;margin:0 0 18px}
+  .gateform{display:flex;flex-direction:column;gap:12px}
+  .gateform .btn{width:100%;padding:11px;font-size:15px}
+  .err{color:var(--danger);background:var(--danger-soft);border-radius:9px;padding:8px 10px;font-size:13px}
+
+  .foot{margin-top:34px;padding-top:14px;border-top:1px solid var(--line);font-size:12px;color:var(--ink-faint)}
+  .userlist{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}
+  .userrow{display:flex;align-items:center;gap:10px;background:var(--surface-2);border-radius:9px;
+    padding:8px 11px;font-size:13.5px;flex-wrap:wrap}
+  .userrow .tag{margin-left:auto;font-size:11px;color:var(--ink-faint)}
+
+  @media (max-width:520px){ .grid{grid-template-columns:1fr} .stats{grid-template-columns:1fr} }
+  @media (prefers-reduced-motion: no-preference){
+    .toast{animation:rise .22s ease-out}
+    @keyframes rise{from{opacity:0;transform:translate(-50%,8px)}to{opacity:1;transform:translate(-50%,0)}}
+  }
+</style>
+</head>
+<body>
+
+<div id="app"></div>
+
+<template id="tpl-gate">
+  <div class="gate">
+    <div class="gatebox">
+      <h1>Agenda de Glam<span style="color:var(--accent)">.</span></h1>
+      <p id="gateMsg"></p>
+      <form class="gateform" id="gateForm">
+        <label class="f" id="wrapNombre" hidden>Tu nombre
+          <input id="gNombre" autocomplete="name" placeholder="Ej. Marcela">
+        </label>
+        <label class="f">Usuario
+          <input id="gUsuario" autocomplete="username" required placeholder="marcela">
+        </label>
+        <label class="f">Contraseña
+          <input id="gClave" type="password" required>
+          <span class="hint" id="gHint" hidden>Mínimo 8 caracteres. Anótala: no hay correo de recuperación.</span>
+        </label>
+        <div class="err" id="gError" hidden></div>
+        <button class="btn primary" type="submit" id="gBtn">Entrar</button>
+      </form>
+    </div>
+  </div>
+</template>
+
+<script>
+(() => {
+  "use strict";
+
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) =>
+    ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+  const COP = new Intl.NumberFormat("es-CO", { style:"currency", currency:"COP", maximumFractionDigits:0 });
+  const money = (n) => COP.format(Math.round(Number(n) || 0));
+  const saldoDe = (c) => Math.max(0, (Number(c.valor)||0) - (Number(c.abono)||0));
+
+  const hoyISO = () => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+  };
+  const parseISO = (iso) => {
+    const [y,m,d] = String(iso||"").split("-").map(Number);
+    return (y&&m&&d) ? new Date(y,m-1,d) : null;
+  };
+  const dias = (iso) => {
+    const a = parseISO(iso), b = parseISO(hoyISO());
+    return (a&&b) ? Math.round((a-b)/86400000) : 9999;
+  };
+  const fmtDia = (iso) => {
+    const d = parseISO(iso);
+    if (!d) return "Sin fecha";
+    const s = d.toLocaleDateString("es-CO", { weekday:"long", day:"numeric", month:"long" });
+    return s.charAt(0).toUpperCase() + s.slice(1);
+  };
+  const relDia = (iso) => {
+    const n = dias(iso);
+    if (n === 0) return "Hoy";
+    if (n === 1) return "Mañana";
+    if (n === -1) return "Ayer";
+    return (n > 1 && n <= 7) ? `En ${n} días` : "";
+  };
+  const fmtHora = (h) => {
+    if (!h) return "--:--";
+    const [H,M] = h.split(":").map(Number);
+    const h12 = H % 12 === 0 ? 12 : H % 12;
+    return `${h12}:${String(M||0).padStart(2,"0")} ${H >= 12 ? "p.m." : "a.m."}`;
+  };
+  const masMin = (h, mins) => {
+    if (!h) return "";
+    const [H,M] = h.split(":").map(Number);
+    const t = H*60 + M + (Number(mins)||0);
+    return `${String(Math.floor((((t%1440)+1440)%1440)/60)).padStart(2,"0")}:${String(((t%60)+60)%60).padStart(2,"0")}`;
+  };
+  const waLink = (tel, msg) => {
+    let d = String(tel||"").replace(/\D/g,"");
+    if (!d) return null;
+    if (d.length === 10) d = "57" + d;
+    return `https://wa.me/${d}?text=${encodeURIComponent(msg)}`;
+  };
+
+  async function api(url, init) {
+    const res = await fetch(url, { credentials:"same-origin", ...init });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || data.ok === false) throw new Error(data.message || "Algo falló. Intenta otra vez.");
+    return data;
+  }
+  const json = (body, method = "POST") =>
+    ({ method, headers:{ "content-type":"application/json" }, body: JSON.stringify(body) });
+
+  let toastTimer = null;
+  function toast(msg) {
+    document.querySelectorAll(".toast").forEach((t) => t.remove());
+    const el = document.createElement("div");
+    el.className = "toast";
+    el.setAttribute("role", "status");
+    el.textContent = msg;
+    document.body.appendChild(el);
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => el.remove(), 3400);
+  }
+
+  const SERVICIOS = ["Solo maquillaje","Maquillaje y peinado","Solo peinado","Maquillaje novia",
+    "Maquillaje + peinado novia","Prueba de novia","Otro"];
+  const OCASIONES = ["Social","Matrimonio","Grado","Quince","Sesión de fotos","Otra"];
+  const MODALIDADES = ["A domicilio","En mi estudio","Salón / hotel"];
+  const MEDIOS = ["Nequi","Daviplata","Bancolombia","Efectivo","Otro"];
+  const DURACIONES = [[45,"45 min"],[60,"1 hora"],[90,"1 h 30 min"],[120,"2 horas"],[180,"3 horas"],[240,"4 horas"]];
+  const ESTADOS = { agendada:["Agendada","state"], confirmada:["Confirmada","ok"],
+    completada:["Completada","place"], cancelada:["Cancelada","danger"] };
+
+  let sesion = null, citas = [], filtro = "proximas", busqueda = "";
+  let draft = null, draftFotos = [], subidasNuevas = new Set(), subiendo = 0;
+
+  /* ---------------- entrada ---------------- */
+
+  function pintarEntrada(sinCuentas) {
+    const nodo = $("tpl-gate").content.cloneNode(true);
+    $("app").replaceChildren(nodo);
+    $("gateMsg").textContent = sinCuentas
+      ? "Esta agenda todavía no tiene dueña. Crea tu cuenta: quien la cree queda como administradora."
+      : "Entra con tu usuario y contraseña.";
+    $("wrapNombre").hidden = !sinCuentas;
+    $("gHint").hidden = !sinCuentas;
+    $("gBtn").textContent = sinCuentas ? "Crear mi cuenta" : "Entrar";
+    $("gClave").autocomplete = sinCuentas ? "new-password" : "current-password";
+
+    $("gateForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      $("gError").hidden = true;
+      $("gBtn").disabled = true;
+      try {
+        const data = await api("/api/session", json({
+          accion: sinCuentas ? "registrar-primera" : "entrar",
+          usuario: $("gUsuario").value,
+          clave: $("gClave").value,
+          nombre: $("gNombre").value,
+        }));
+        sesion = data.usuario;
+        await recargar();
+        pintar();
+      } catch (err) {
+        $("gError").textContent = err.message;
+        $("gError").hidden = false;
+      } finally {
+        $("gBtn").disabled = false;
+      }
+    });
+  }
+
+  /* ---------------- agenda ---------------- */
+
+  async function recargar() {
+    const data = await api("/api/citas");
+    citas = data.citas;
+  }
+
+  function stats() {
+    const vivas = citas.filter((c) => c.estado !== "cancelada");
+    const proximas = vivas.filter((c) => dias(c.fecha) >= 0 && c.estado !== "completada");
+    const porCobrar = vivas.filter((c) => dias(c.fecha) >= -30).reduce((s,c) => s + saldoDe(c), 0);
+    const mes = hoyISO().slice(0,7);
+    const abonado = vivas.filter((c) => (c.fechaAbono || c.fecha).slice(0,7) === mes)
+      .reduce((s,c) => s + (Number(c.abono)||0), 0);
+    return { proximas: proximas.length, porCobrar, abonado };
+  }
+
+  function coincide(c) {
+    if (busqueda) {
+      const heno = `${c.cliente} ${c.servicio} ${c.zona} ${c.direccion} ${c.notas}`.toLowerCase();
+      if (!heno.includes(busqueda)) return false;
+    }
+    const n = dias(c.fecha);
+    if (filtro === "hoy") return n === 0 && c.estado !== "cancelada";
+    if (filtro === "proximas") return n >= 0 && c.estado !== "completada" && c.estado !== "cancelada";
+    if (filtro === "saldo") return saldoDe(c) > 0 && c.estado !== "cancelada";
+    if (filtro === "historial") return n < 0 || c.estado === "completada" || c.estado === "cancelada";
+    return true;
+  }
+
+  function tarjeta(c) {
+    const s = saldoDe(c), total = Number(c.valor)||0;
+    const pagada = total > 0 && s === 0;
+    const sinAbono = (Number(c.abono)||0) === 0 && total > 0;
+    const [etiqueta, clase] = ESTADOS[c.estado] || ESTADOS.agendada;
+    const lugar = [c.modalidad, c.zona].filter(Boolean).join(" · ");
+    const cls = ["card", c.estado === "cancelada" ? "off" : (pagada ? "" : (sinAbono ? "unpaid" : "owes"))]
+      .filter(Boolean).join(" ");
+    const fotos = c.fotos.map((id) =>
+      `<img class="thumb" src="/api/fotos?id=${esc(id)}" alt="Referencia de ${esc(c.cliente)}" data-zoom="${esc(id)}" loading="lazy">`).join("");
+
+    return `
+      <article class="${cls}" data-id="${esc(c.id)}">
+        <div class="cardtop">
+          <div class="hour">${esc(fmtHora(c.hora))}<small>hasta ${esc(fmtHora(masMin(c.hora, c.duracion)))}</small></div>
+          <div class="whoblock">
+            <div class="name">${esc(c.cliente)}</div>
+            <div class="svc">${esc(c.servicio)}${c.personas > 1 ? ` · ${esc(c.personas)} personas` : ""}${c.ocasion ? ` · ${esc(c.ocasion)}` : ""}</div>
+            <div class="chips">
+              <span class="chip ${clase}">${esc(etiqueta)}</span>
+              ${lugar ? `<span class="chip place">${esc(lugar)}</span>` : ""}
+              ${pagada ? `<span class="chip ok">Pagada</span>`
+                       : `<span class="chip ${sinAbono ? "danger" : "warn"}">Cobrar ${esc(money(s))}</span>`}
+            </div>
+          </div>
+        </div>
+        ${c.direccion ? `<div class="note">📍 ${esc(c.direccion)}</div>` : ""}
+        <div class="money">
+          <div><b>Servicio</b><i>${esc(money(total))}</i></div>
+          <div><b>Abonado</b><i>${esc(money(c.abono))}${c.medio ? ` <small>${esc(c.medio)}</small>` : ""}</i></div>
+          <div class="owe"><b>${s > 0 ? "Cobrar el día de la cita" : "Saldo"}</b><i class="big ${s > 0 ? "due" : "clear"}">${esc(money(s))}</i></div>
+        </div>
+        ${fotos ? `<div class="thumbs">${fotos}</div>` : ""}
+        ${c.notas ? `<div class="note">${esc(c.notas)}</div>` : ""}
+        <div class="actions">
+          <button class="btn" data-act="edit">Editar</button>
+          ${c.tel ? `<button class="btn" data-act="wa">Escribir por WhatsApp</button>` : ""}
+          ${s > 0 && c.estado !== "cancelada" ? `<button class="btn" data-act="cobrar">Registrar pago del saldo</button>` : ""}
+        </div>
+      </article>`;
+  }
+
+  function pintar() {
+    const st = stats();
+    const lista = citas.filter(coincide).sort((a,b) => {
+      const k = filtro === "historial" ? -1 : 1;
+      return k * `${a.fecha} ${a.hora}`.localeCompare(`${b.fecha} ${b.hora}`);
+    });
+
+    const grupos = new Map();
+    for (const c of lista) {
+      if (!grupos.has(c.fecha)) grupos.set(c.fecha, []);
+      grupos.get(c.fecha).push(c);
+    }
+
+    const cuerpo = grupos.size === 0
+      ? `<div class="empty"><h3>${citas.length === 0 ? "Tu agenda está en blanco" : "Nada por aquí"}</h3>
+           <p>${citas.length === 0 ? "Toca “Nueva cita” y agrega la primera." : "No hay citas que coincidan con este filtro."}</p></div>`
+      : [...grupos.entries()].map(([fecha, items]) => {
+          const rel = relDia(fecha);
+          const totalDia = items.reduce((s,c) => s + (c.estado === "cancelada" ? 0 : (Number(c.valor)||0)), 0);
+          return `<section class="daygroup">
+            <div class="dayhead">
+              <span class="d">${esc(fmtDia(fecha))}</span>
+              ${rel ? `<span class="rel">${esc(rel)}</span>` : ""}
+              <span class="cnt">${items.length} cita${items.length > 1 ? "s" : ""} · ${esc(money(totalDia))}</span>
+            </div>
+            <div class="cards">${items.map(tarjeta).join("")}</div>
+          </section>`;
+        }).join("");
+
+    $("app").innerHTML = `
+      <div class="wrap">
+        <header class="top">
+          <div class="brandrow">
+            <h1 class="brand">Agenda de Glam<span>.</span></h1>
+            <div class="who">
+              <span>${esc(sesion.nombre)}</span>
+              ${sesion.rol === "admin" ? `<button class="btn" id="btnCuentas">Cuentas</button>` : ""}
+              <button class="btn ghost" id="btnSalir">Salir</button>
+            </div>
+          </div>
+          <div class="stats">
+            <div class="stat"><b>Próximas citas</b><i>${st.proximas}</i></div>
+            <div class="stat due"><b>Por cobrar</b><i>${esc(money(st.porCobrar))}</i></div>
+            <div class="stat paid"><b>Abonado este mes</b><i>${esc(money(st.abonado))}</i></div>
+          </div>
+          <div class="toolbar">
+            <div class="tabs" role="tablist" id="tabs">
+              ${[["proximas","Próximas"],["hoy","Hoy"],["saldo","Con saldo"],["historial","Historial"],["todas","Todas"]]
+                .map(([v,t]) => `<button class="tab" role="tab" data-filter="${v}" aria-selected="${filtro===v}">${t}</button>`).join("")}
+            </div>
+            <input class="search" id="busqueda" type="search" placeholder="Buscar clienta…" aria-label="Buscar clienta" value="${esc(busqueda)}">
+          </div>
+        </header>
+        <main id="lista">${cuerpo}</main>
+        <footer class="foot">
+          Tus citas, tus clientas y sus fotos viven en tu propio servidor, detrás de tu contraseña.
+          Los montos están en pesos colombianos.
+        </footer>
+      </div>
+      <button class="fab" id="fab">+ Nueva cita</button>`;
+
+    $("fab").addEventListener("click", () => abrirForm(null));
+    $("btnSalir").addEventListener("click", salir);
+    if ($("btnCuentas")) $("btnCuentas").addEventListener("click", abrirCuentas);
+    $("tabs").addEventListener("click", (e) => {
+      const tab = e.target.closest(".tab");
+      if (!tab) return;
+      filtro = tab.dataset.filter;
+      pintar();
+    });
+    const caja = $("busqueda");
+    caja.addEventListener("input", (e) => {
+      busqueda = e.target.value.trim().toLowerCase();
+      const pos = e.target.selectionStart;
+      pintar();
+      const nueva = $("busqueda");
+      nueva.focus();
+      nueva.setSelectionRange(pos, pos);
+    });
+    $("lista").addEventListener("click", accionesTarjeta);
+  }
+
+  async function accionesTarjeta(e) {
+    const zoom = e.target.closest("[data-zoom]");
+    if (zoom) return lightbox(zoom.getAttribute("data-zoom"));
+
+    const btn = e.target.closest("[data-act]");
+    if (!btn) return;
+    const c = citas.find((x) => x.id === e.target.closest(".card").dataset.id);
+    if (!c) return;
+
+    if (btn.dataset.act === "edit") return abrirForm(c);
+
+    if (btn.dataset.act === "wa") {
+      const s = saldoDe(c);
+      const msg = `Hola ${c.cliente}! Te confirmo tu cita de ${(c.servicio||"maquillaje").toLowerCase()} `
+        + `el ${fmtDia(c.fecha).toLowerCase()} a las ${fmtHora(c.hora)}`
+        + `${c.direccion ? ` en ${c.direccion}` : ""}. `
+        + (s > 0 ? `Queda un saldo de ${money(s)} sobre un total de ${money(Number(c.valor)||0)}.` : "Ya está todo pago.")
+        + " Cualquier cosa me avisas 💄";
+      const link = waLink(c.tel, msg);
+      if (link) window.open(link, "_blank", "noopener");
+      else toast("Esta clienta no tiene número guardado.");
+      return;
+    }
+
+    if (btn.dataset.act === "cobrar") {
+      if (!confirm(`¿Registrar el pago del saldo de ${money(saldoDe(c))} de ${c.cliente}?`)) return;
+      try {
+        await api("/api/citas", json({ accion:"pagar-saldo", id:c.id }));
+        await recargar();
+        pintar();
+        toast("Saldo saldado.");
+      } catch (err) { toast(err.message); }
+    }
+  }
+
+  function lightbox(id) {
+    const box = document.createElement("div");
+    box.className = "lightbox";
+    box.innerHTML = `<img src="/api/fotos?id=${esc(id)}" alt="Foto de referencia ampliada">`;
+    box.addEventListener("click", () => box.remove());
+    document.body.appendChild(box);
+  }
+
+  async function salir() {
+    await fetch("/api/session", { method:"DELETE", credentials:"same-origin" }).catch(() => null);
+    sesion = null;
+    citas = [];
+    pintarEntrada(false);
+  }
+
+  /* ---------------- formulario ---------------- */
+
+  const CAMPOS = ["cliente","tel","personas","fecha","hora","duracion","servicio","ocasion","estado",
+    "modalidad","zona","direccion","valor","abono","medio","fechaAbono","notas"];
+
+  function opciones(lista, sel) {
+    return lista.map((v) => {
+      const [valor, texto] = Array.isArray(v) ? v : [v, v];
+      return `<option value="${esc(valor)}"${String(valor) === String(sel) ? " selected" : ""}>${esc(texto)}</option>`;
+    }).join("");
+  }
+
+  function abrirForm(cita) {
+    draft = cita ? { ...cita } : {
+      id:"", cliente:"", tel:"", personas:1, fecha:hoyISO(), hora:"", duracion:60,
+      servicio:"Solo maquillaje", ocasion:"Social", estado:"agendada", modalidad:"A domicilio",
+      zona:"", direccion:"", valor:"", abono:"", medio:"Nequi", fechaAbono:"", notas:"", fotos:[],
+    };
+    draftFotos = [...(draft.fotos || [])];
+    subidasNuevas = new Set();
+    subiendo = 0;
+
+    const dlg = document.createElement("dialog");
+    dlg.id = "dlg";
+    dlg.innerHTML = `
+      <form class="sheet" method="dialog">
+        <header>
+          <h2>${cita ? "Editar cita" : "Nueva cita"}</h2>
+          <button class="btn ghost" type="button" data-cerrar aria-label="Cerrar">✕</button>
+        </header>
+        <div class="body">
+          <fieldset><legend>Clienta</legend><div class="grid">
+            <label class="f full">Nombre<input id="f_cliente" value="${esc(draft.cliente)}" placeholder="Ej. Laura Restrepo"></label>
+            <label class="f">WhatsApp<input id="f_tel" inputmode="tel" value="${esc(draft.tel)}" placeholder="300 123 4567"></label>
+            <label class="f">Personas a maquillar<input id="f_personas" type="number" min="1" value="${esc(draft.personas)}"></label>
+          </div></fieldset>
+
+          <fieldset><legend>Cita</legend><div class="grid">
+            <label class="f">Fecha<input id="f_fecha" type="date" value="${esc(draft.fecha)}"></label>
+            <label class="f">Hora de inicio<input id="f_hora" type="time" value="${esc(draft.hora)}"></label>
+            <label class="f">Servicio<select id="f_servicio">${opciones(SERVICIOS, draft.servicio)}</select></label>
+            <label class="f">Ocasión<select id="f_ocasion">${opciones(OCASIONES, draft.ocasion)}</select></label>
+            <label class="f">Duración estimada<select id="f_duracion">${opciones(DURACIONES, draft.duracion)}</select></label>
+            <label class="f">Estado<select id="f_estado">${opciones(Object.entries(ESTADOS).map(([v,[t]]) => [v,t]), draft.estado)}</select></label>
+          </div></fieldset>
+
+          <fieldset><legend>Lugar</legend><div class="grid">
+            <label class="f">Modalidad<select id="f_modalidad">${opciones(MODALIDADES, draft.modalidad)}</select></label>
+            <label class="f">Barrio o ciudad<input id="f_zona" value="${esc(draft.zona)}" placeholder="Ej. Laureles, Medellín"></label>
+            <label class="f full">Dirección exacta<input id="f_direccion" value="${esc(draft.direccion)}" placeholder="Calle 10 #43-25, apto 502"></label>
+          </div></fieldset>
+
+          <fieldset><legend>Dinero</legend><div class="grid">
+            <label class="f">Valor del servicio<input id="f_valor" type="number" min="0" step="1000" value="${esc(draft.valor || "")}" placeholder="0"></label>
+            <label class="f">Abonado<input id="f_abono" type="number" min="0" step="1000" value="${esc(draft.abono || "")}" placeholder="0"></label>
+            <label class="f">Medio del abono<select id="f_medio">${opciones(MEDIOS, draft.medio)}</select></label>
+            <label class="f">Fecha del abono<input id="f_fechaAbono" type="date" value="${esc(draft.fechaAbono)}"></label>
+          </div>
+          <div class="balance">
+            <div><b>Valor del servicio</b><i id="b_total">$0</i></div>
+            <div><b>Le queda debiendo</b><i class="big" id="b_saldo">$0</i></div>
+          </div></fieldset>
+
+          <fieldset><legend>Fotos de referencia</legend>
+            <div class="photos" id="photos"></div>
+            <input type="file" id="fileInput" accept="image/*" multiple hidden>
+          </fieldset>
+
+          <fieldset><legend>Notas</legend>
+            <label class="f">Detalles del look, alergias, color del vestido, tono de piel
+              <textarea id="f_notas" placeholder="Piel mixta, alergia al látex. Vestido verde esmeralda.">${esc(draft.notas)}</textarea>
+            </label>
+          </fieldset>
+
+          <div class="err" id="fError" hidden></div>
+        </div>
+        <footer>
+          ${draft.id ? `<button class="btn ghost" type="button" id="btnEliminar">Eliminar</button>` : ""}
+          <button class="btn" type="button" data-cerrar>Cancelar</button>
+          <button class="btn primary" type="button" id="btnGuardar">Guardar cita</button>
+        </footer>
+      </form>`;
+    document.body.appendChild(dlg);
+
+    const balance = () => {
+      const total = Number($("f_valor").value) || 0;
+      const s = total - (Number($("f_abono").value) || 0);
+      $("b_total").textContent = money(total);
+      $("b_saldo").textContent = money(Math.max(0, s));
+      $("b_saldo").style.color = s > 0 ? "var(--warn)" : "var(--ok)";
+    };
+    ["f_valor","f_abono"].forEach((id) => $(id).addEventListener("input", balance));
+    balance();
+    pintarFotos();
+
+    dlg.querySelectorAll("[data-cerrar]").forEach((b) => b.addEventListener("click", cerrar));
+    $("photos").addEventListener("click", clickFotos);
+    $("fileInput").addEventListener("change", async (e) => {
+      const files = [...e.target.files];
+      e.target.value = "";
+      await subirFotos(files);
+    });
+    $("btnGuardar").addEventListener("click", guardar);
+    if ($("btnEliminar")) $("btnEliminar").addEventListener("click", eliminar);
+    dlg.showModal();
+    $("f_cliente").focus();
+
+    async function cerrar() {
+      const huerfanas = [...subidasNuevas].filter((id) => !(cita?.fotos || []).includes(id));
+      dlg.close();
+      dlg.remove();
+      for (const id of huerfanas) {
+        await fetch(`/api/fotos?id=${id}`, { method:"DELETE", credentials:"same-origin" }).catch(() => null);
+      }
+    }
+
+    function pintarFotos() {
+      const cargando = Array.from({ length: subiendo }, () => `<div class="slot">Subiendo…</div>`).join("");
+      $("photos").innerHTML = draftFotos.map((id) => `
+        <div class="slot">
+          <img src="/api/fotos?id=${esc(id)}" alt="Foto de referencia">
+          <button type="button" data-del="${esc(id)}" aria-label="Quitar foto">✕</button>
+        </div>`).join("") + cargando +
+        `<button type="button" class="addphoto" id="addPhoto"><span>+</span>Agregar</button>`;
+    }
+
+    async function clickFotos(e) {
+      if (e.target.closest("#addPhoto")) return $("fileInput").click();
+      const del = e.target.closest("[data-del]");
+      if (!del) return;
+      const id = del.getAttribute("data-del");
+      draftFotos = draftFotos.filter((x) => x !== id);
+      subidasNuevas.delete(id);
+      pintarFotos();
+      await fetch(`/api/fotos?id=${id}`, { method:"DELETE", credentials:"same-origin" }).catch(() => null);
+    }
+
+    // Comprimir antes de subir: una foto del celular pesa varios MB.
+    function comprimir(file) {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        const url = URL.createObjectURL(file);
+        img.onload = () => {
+          URL.revokeObjectURL(url);
+          const escala = Math.min(1, 1600 / Math.max(img.width, img.height));
+          const w = Math.round(img.width * escala), h = Math.round(img.height * escala);
+          const canvas = document.createElement("canvas");
+          canvas.width = w; canvas.height = h;
+          canvas.getContext("2d").drawImage(img, 0, 0, w, h);
+          canvas.toBlob((b) => b ? resolve(b) : reject(new Error("sin-blob")), "image/jpeg", 0.82);
+        };
+        img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("sin-imagen")); };
+        img.src = url;
+      });
+    }
+
+    async function subirFotos(files) {
+      for (const file of files) {
+        if (draftFotos.length + subiendo >= 8) { toast("Máximo 8 fotos por cita."); break; }
+        subiendo += 1;
+        pintarFotos();
+        try {
+          const blob = await comprimir(file).catch(() => file);
+          const form = new FormData();
+          form.append("file", new File([blob], "referencia.jpg", { type:"image/jpeg" }));
+          const data = await api("/api/fotos", { method:"POST", body:form });
+          draftFotos.push(data.id);
+          subidasNuevas.add(data.id);
+        } catch (err) {
+          toast(err.message || "No se pudo subir la foto.");
+        } finally {
+          subiendo -= 1;
+          pintarFotos();
+        }
+      }
+    }
+
+    function leer() {
+      const out = { id: draft.id, fotos: [...draftFotos] };
+      for (const campo of CAMPOS) out[campo] = $(`f_${campo}`).value;
+      return out;
+    }
+
+    async function guardar() {
+      const datos = leer();
+      $("fError").hidden = true;
+      if (!datos.cliente.trim() || !datos.fecha || !datos.hora) {
+        $("fError").textContent = "Falta el nombre, la fecha o la hora.";
+        $("fError").hidden = false;
+        return;
+      }
+      $("btnGuardar").disabled = true;
+      try {
+        await api("/api/citas", json({ accion:"guardar", ...datos }));
+        subidasNuevas = new Set();
+        dlg.close();
+        dlg.remove();
+        await recargar();
+        pintar();
+        toast(datos.id ? "Cita actualizada." : "Cita guardada.");
+      } catch (err) {
+        $("fError").textContent = err.message;
+        $("fError").hidden = false;
+      } finally {
+        $("btnGuardar").disabled = false;
+      }
+    }
+
+    async function eliminar() {
+      if (!confirm(`¿Eliminar la cita de ${draft.cliente}? Sus fotos también se borran.`)) return;
+      try {
+        await api("/api/citas", json({ accion:"eliminar", id:draft.id }));
+        dlg.close();
+        dlg.remove();
+        await recargar();
+        pintar();
+        toast("Cita eliminada.");
+      } catch (err) {
+        $("fError").textContent = err.message;
+        $("fError").hidden = false;
+      }
+    }
+  }
+
+  /* ---------------- cuentas ---------------- */
+
+  async function abrirCuentas() {
+    const dlg = document.createElement("dialog");
+    dlg.innerHTML = `
+      <form class="sheet" method="dialog">
+        <header><h2>Cuentas</h2>
+          <button class="btn ghost" type="button" data-cerrar aria-label="Cerrar">✕</button>
+        </header>
+        <div class="body">
+          <p style="color:var(--ink-soft);font-size:13.5px;margin-top:0">
+            Cada cuenta ve solo sus propias citas. Tú eres la administradora: eres la única que
+            puede crear o quitar cuentas.
+          </p>
+          <div class="userlist" id="userlist">Cargando…</div>
+          <fieldset><legend>Agregar una cuenta</legend><div class="grid">
+            <label class="f">Nombre<input id="c_nombre"></label>
+            <label class="f">Usuario<input id="c_usuario" placeholder="sin espacios ni tildes"></label>
+            <label class="f full">Contraseña<input id="c_clave" type="password">
+              <span class="hint">Mínimo 8 caracteres. Pásasela por aparte.</span></label>
+          </div></fieldset>
+          <div class="err" id="cError" hidden></div>
+        </div>
+        <footer><button class="btn primary" type="button" id="btnCrear">Crear cuenta</button></footer>
+      </form>`;
+    document.body.appendChild(dlg);
+    dlg.querySelectorAll("[data-cerrar]").forEach((b) =>
+      b.addEventListener("click", () => { dlg.close(); dlg.remove(); }));
+
+    async function lista() {
+      try {
+        const data = await api("/api/usuarios");
+        $("userlist").innerHTML = data.usuarios.map((u) => `
+          <div class="userrow">
+            <strong>${esc(u.nombre)}</strong>
+            <span style="color:var(--ink-faint)">@${esc(u.usuario)}</span>
+            <span class="tag">${u.rol === "admin" ? "administradora" : "maquilladora"}</span>
+            ${u.id !== sesion.id ? `<button class="btn ghost" type="button" data-quitar="${esc(u.id)}" data-nombre="${esc(u.nombre)}">Quitar</button>` : ""}
+          </div>`).join("");
+      } catch (err) {
+        $("userlist").textContent = err.message;
+      }
+    }
+
+    $("userlist").addEventListener("click", async (e) => {
+      const btn = e.target.closest("[data-quitar]");
+      if (!btn) return;
+      if (!confirm(`¿Quitar la cuenta de ${btn.dataset.nombre}?`)) return;
+      try {
+        await api(`/api/usuarios?id=${btn.dataset.quitar}`, { method:"DELETE" });
+        await lista();
+        toast("Cuenta eliminada.");
+      } catch (err) { toast(err.message); }
+    });
+
+    $("btnCrear").addEventListener("click", async () => {
+      $("cError").hidden = true;
+      try {
+        await api("/api/usuarios", json({
+          usuario: $("c_usuario").value, nombre: $("c_nombre").value, clave: $("c_clave").value,
+        }));
+        $("c_usuario").value = ""; $("c_nombre").value = ""; $("c_clave").value = "";
+        await lista();
+        toast("Cuenta creada.");
+      } catch (err) {
+        $("cError").textContent = err.message;
+        $("cError").hidden = false;
+      }
+    });
+
+    dlg.showModal();
+    await lista();
+  }
+
+  /* ---------------- arranque ---------------- */
+
+  (async () => {
+    try {
+      const data = await api("/api/session");
+      if (data.usuario) {
+        sesion = data.usuario;
+        await recargar();
+        pintar();
+      } else {
+        pintarEntrada(data.sinCuentas);
+      }
+    } catch (err) {
+      $("app").innerHTML = `<div class="gate"><div class="gatebox">
+        <h1>No se pudo conectar</h1>
+        <p>${esc(err.message)} Recarga la página.</p></div></div>`;
+    }
+  })();
+})();
+</script>
+</body>
+</html>
